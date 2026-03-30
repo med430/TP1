@@ -69,4 +69,9 @@ export class CvsController extends GenericController<CvEntity> {
     return this.cvsService.restore(id);
   }
 
+    @Delete(':id/hard')
+  hardDelete(@Param('id', ParseIntPipe) id: number) {
+    return this.cvsService.delete(id);
+  }
+
 }

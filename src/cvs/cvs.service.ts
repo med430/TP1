@@ -40,4 +40,16 @@ export class CvsService extends GenericCrud<CvEntity> {
       ...dto,
     });
   }
+
+  async updateCv(
+    id: number,
+    dto: UpdateCvDto,
+  ): Promise<CvEntity> {
+    if (dto.cin) {
+      await this.validateUniqueCin(dto.cin, id);
+    }
+
+    return super.update(id, dto);
+  }
+
 }

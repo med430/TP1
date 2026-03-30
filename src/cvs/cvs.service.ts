@@ -52,4 +52,25 @@ export class CvsService extends GenericCrud<CvEntity> {
     return super.update(id, dto);
   }
 
+
+  async statCvNumberByAge(min?: number, max?: number) {
+    const qb = this.cvRepository.createQueryBuilder('cv');
+
+    qb
+      .select('cv.age', 'age')
+      .addSelect('COUNT(cv.id)', 'count');
+
+    if (min !== undefined) {
+      qb.andWhere('cv.age >= :min', { min });
+    }
+
+    if (max !== undefined) {
+      qb.andWhere('cv.age <= :max', { max });
+    }
+
+    qb.groupBy('cv.age');
+
+    return qb.getRawMany();
+  }
+  
 }

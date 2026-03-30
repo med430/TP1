@@ -30,6 +30,14 @@ export class CvsController extends GenericController<CvEntity> {
     return this.cvsService.findAll();
   }
 
+    @Get('stats')
+  statsCvNumberByAge(@Query() query: StatParamDto) {
+    return this.cvsService.statCvNumberByAge(
+      query.min,
+      query.max,
+    );
+  }
+
    @Get(':id')
   async findOne(
     @Param('id', ParseIntPipe) id: number,

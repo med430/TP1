@@ -1,4 +1,8 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity, OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { TimeStampEntity } from '../../common/db/timestamp.entity';
 import { CvEntity } from '../../cvs/entities/cv.entity';
 
@@ -21,7 +25,7 @@ export class UserEntity extends TimeStampEntity {
   //pour chaque cv va chercher l'user associee
   @OneToMany(() => CvEntity, (cv) => cv.user, {
     cascade: true,
-    eager: false,
+    eager: false
   })
   cvs: CvEntity[];
 }

@@ -64,5 +64,9 @@ export class CvsController extends GenericController<CvEntity> {
 
   }
 
+    @Patch(':id/restore')
+  restore(@Param('id', ParseIntPipe) id: number) {
+    return this.cvsService.restore(id);
+  }
 
 }

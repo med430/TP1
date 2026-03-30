@@ -20,4 +20,14 @@ export class CvsService extends GenericCrud<CvEntity> {
   ) {
     super(cvRepository);
   }
+
+    private async validateUniqueCin(cin: number, excludeId?: number) {
+    const exists = await this.cvRepository.findOne({
+      where: { cin },
+    });
+
+    if (exists && exists.id !== excludeId) {
+      throw new BadRequestException('CIN already exists');
+    }
+  }
 }

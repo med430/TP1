@@ -22,4 +22,13 @@ export class CvsController extends GenericController<CvEntity> {
     return this.cvsService.findAll();
   }
 
+   @Get(':id')
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+
+  ) {
+    return this.cvsService.findOne(id);
+  }
+
+
 }

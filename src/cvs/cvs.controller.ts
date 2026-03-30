@@ -30,5 +30,13 @@ export class CvsController extends GenericController<CvEntity> {
     return this.cvsService.findOne(id);
   }
 
+  
+  @Post()
+  create(
+    @Body() dto: CreateCvDto,
+  ) {
+    return this.cvsService.createCv(dto);
+  }
+
 
 }

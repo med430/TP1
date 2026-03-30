@@ -30,4 +30,14 @@ export class CvsService extends GenericCrud<CvEntity> {
       throw new BadRequestException('CIN already exists');
     }
   }
+
+   async createCv(
+    dto: Partial<CvEntity>,
+  ): Promise<CvEntity> {
+    await this.validateUniqueCin(dto.cin!);
+
+    return super.create({
+      ...dto,
+    });
+  }
 }

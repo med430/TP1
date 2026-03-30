@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { CvsService } from './cvs.service';
 import { CvEntity } from './entities/cv.entity';
+import { CreateCvDto } from './dto/create-cv.dto';
 import { GenericController } from '../common/db/generic-crud.controller';
 import { StatParamDto } from './dto/stat-param-cv.dto';
 
@@ -41,5 +42,11 @@ export class CvsController extends GenericController<CvEntity> {
     return this.cvsService.findOne(id);
   }
 
-  
+  @Post()
+  create(
+    @Body() dto: CreateCvDto,
+  ) {
+    return this.cvsService.createCv(dto);
+  }
+
 }

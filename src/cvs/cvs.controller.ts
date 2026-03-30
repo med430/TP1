@@ -56,6 +56,13 @@ export class CvsController extends GenericController<CvEntity> {
       return this.cvsService.updateCv(id, dto);
   }
 
-  
+   @Delete(':id')
+  async delete(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+   return this.cvsService.softDelete(id);
+
+  }
+
 
 }

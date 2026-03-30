@@ -17,6 +17,9 @@ export class CvsController extends GenericController<CvEntity> {
     super(cvsService);
   }
 
- 
+  @Get()
+  findAll() {
+    return this.cvsService.findAll();
+  }
 
 }

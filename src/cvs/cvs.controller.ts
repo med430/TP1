@@ -9,13 +9,7 @@ import {
   Query,
   Delete,
 } from '@nestjs/common';
-import { CvsService } from './cvs.service';
-import { CvEntity } from './entities/cv.entity';
-import { CreateCvDto } from './dto/create-cv.dto';
-import { UpdateCvDto } from './dto/update-cv.dto';
-import { GenericController } from '../common/db/generic-crud.controller';
-import { StatParamDto } from './dto/stat-param-cv.dto';
-import { UpdateByCriteriaCvDto } from './dto/update-by-criteria-cv.dto';
+
 
 @Controller('cvs')
 export class CvsController extends GenericController<CvEntity> {
@@ -23,33 +17,6 @@ export class CvsController extends GenericController<CvEntity> {
     super(cvsService);
   }
 
-  @Get()
-  findAll() {
-    return this.cvsService.findAll();
-  }
-
-  @Get('stats')
-  statsCvNumberByAge(@Query() query: StatParamDto) {
-    return this.cvsService.statCvNumberByAge(
-      query.min,
-      query.max,
-    );
-  }
-
-  @Get(':id')
-  async findOne(
-    @Param('id', ParseIntPipe) id: number,
-
-  ) {
-    return this.cvsService.findOne(id);
-  }
-
-  @Post()
-  create(
-    @Body() dto: CreateCvDto,
-  ) {
-    return this.cvsService.createCv(dto);
-  }
-
+ 
 
 }

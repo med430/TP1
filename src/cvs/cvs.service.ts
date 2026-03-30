@@ -72,5 +72,32 @@ export class CvsService extends GenericCrud<CvEntity> {
 
     return qb.getRawMany();
   }
+
+  async updateByCriteriaCv(
+    criteria: FindOptionsWhere<CvEntity>,
+    dto: UpdateCvDto,
+  ): Promise<CvEntity[]> {
+
+    const cvs = await this.cvRepository.find({
+      where: criteria,
+    });
+
+    if (!cvs.length) {
+      throw new NotFoundException('No CV found');
+    }
+
+    const updated: CvEntity[] = [];
+
+    for (const cv of cvs) {
+      if (dto.cin) {
+        await this.validateUniqueCin(dto.cin, cv.id);
+      }
+
+      const entity = this.cvRepository.merge(cv, dto);
+      updated.push(await this.cvRepository.save(entity));
+    }
+
+    return updated;
+  }
   
 }

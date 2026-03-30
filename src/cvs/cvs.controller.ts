@@ -71,6 +71,16 @@ export class CvsController extends GenericController<CvEntity> {
    return this.cvsService.softDelete(id);
 
   }
+  
+  @Patch()
+  updateByCriteria(
+    @Body() body: UpdateByCriteriaCvDto,
+  ) {
+    return this.cvsService.updateByCriteriaCv(
+      body.criteria,
+      body.dto
+    );
+  }
 
     @Patch(':id/restore')
   restore(@Param('id', ParseIntPipe) id: number) {

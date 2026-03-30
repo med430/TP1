@@ -12,8 +12,10 @@ import {
 import { CvsService } from './cvs.service';
 import { CvEntity } from './entities/cv.entity';
 import { CreateCvDto } from './dto/create-cv.dto';
+import { UpdateCvDto } from './dto/update-cv.dto';
 import { GenericController } from '../common/db/generic-crud.controller';
 import { StatParamDto } from './dto/stat-param-cv.dto';
+import { UpdateByCriteriaCvDto } from './dto/update-by-criteria-cv.dto';
 
 @Controller('cvs')
 export class CvsController extends GenericController<CvEntity> {
@@ -48,5 +50,6 @@ export class CvsController extends GenericController<CvEntity> {
   ) {
     return this.cvsService.createCv(dto);
   }
+
 
 }

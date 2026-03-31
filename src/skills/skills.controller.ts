@@ -64,5 +64,14 @@ export class SkillsController extends GenericController<SkillEntity> {
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.skillsService.softDelete(id);
   }
-}
 
+  @Patch(':id/restore')
+  restore(@Param('id', ParseIntPipe) id: number) {
+    return this.skillsService.restore(id);
+  }
+
+  @Delete(':id/hard')
+  hardDelete(@Param('id', ParseIntPipe) id: number) {
+    return this.skillsService.delete(id);
+  }
+}

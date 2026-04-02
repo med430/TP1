@@ -5,7 +5,7 @@ import { UserEntity } from '../entities/user.entity';
 
 export class UpdateByCriteriaUserDto {
   @IsObject()
-  criteria: Partial<UserEntity>
+  criteria: Partial<UserEntity>;
   @ValidateNested()
   @Type(() => UpdateUserDto)
   dto: UpdateUserDto;

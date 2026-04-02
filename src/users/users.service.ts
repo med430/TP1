@@ -1,14 +1,9 @@
-import { BadRequestException,  Injectable } from '@nestjs/common';
-import {
-  FindOptionsWhere,
-  Repository,
-  UpdateResult,
-} from 'typeorm';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { FindOptionsWhere, Repository, UpdateResult } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { GenericCrud } from '../common/db/generic-crud.service';
 import { UserEntity } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService extends GenericCrud<UserEntity> {
@@ -37,14 +32,8 @@ export class UsersService extends GenericCrud<UserEntity> {
       }
     }
   }
-  async create(dto: CreateUserDto): Promise<UserEntity> {
-    await this.validateUniqueFields(dto);
-    return super.create(dto);
-  }
-  async updateUser(
-    id: number,
-    dto: UpdateUserDto,
-  ): Promise<UserEntity> {
+
+  async updateUser(id: number, dto: UpdateUserDto): Promise<UserEntity> {
     await this.validateUniqueFields(dto, id);
     return super.update(id, dto);
   }
@@ -57,5 +46,14 @@ export class UsersService extends GenericCrud<UserEntity> {
     return super.updateByCriteria(criteria, dto);
   }
 
-
+  async getUserByIdentifier(identifier: string, withPassword = false) {
+    const qb = this.repository
+      .createQueryBuilder('user')
+      .where('user.username = :identifier', { identifier })
+      .orWhere('user.email = :identifier', { identifier });
+    if (withPassword) {
+      qb.addSelect(['user.password']);
+    }
+    return qb.getOne();
+  }
 }

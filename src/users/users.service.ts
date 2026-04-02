@@ -15,7 +15,7 @@ export class UsersService extends GenericCrud<UserEntity> {
   }
 
   public async validateUniqueFields(
-    fields: Partial<UserEntity>,
+    fields: { email?: string; username?: string },
     excludeId?: number,
   ): Promise<void> {
     const checks: (keyof UserEntity)[] = ['email', 'username'];

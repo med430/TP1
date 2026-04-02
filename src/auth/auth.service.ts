@@ -20,7 +20,7 @@ export class AuthService {
     const user = await this.userService.create({
       ...dto,
       password: hashedPassword,
-      role: 'user',
+      roles: ['USER'],
     });
 
     return {
@@ -46,7 +46,7 @@ export class AuthService {
     const payload: JwtPayloadDto = {
       username: user.username,
       email: user.email,
-      role: user.role,
+      roles: user.roles,
     };
     const jwt = this.jwtService.sign(payload);
 

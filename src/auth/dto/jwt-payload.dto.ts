@@ -1,7 +1,7 @@
-import { UserRoleEnum } from '../../users/enums/user-role.enum';
+import { RoleEntity } from '../../roles/entities/role.entity';
 
 export interface JwtPayloadDto {
   username: string;
-  role: UserRoleEnum;
+  roles: RoleEntity[];
   email: string;
 }

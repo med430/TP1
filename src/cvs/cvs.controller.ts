@@ -1,16 +1,16 @@
 import {
   Body,
   Controller,
+  Delete,
+  ForbiddenException,
   Get,
   Param,
   ParseIntPipe,
   Patch,
   Post,
   Query,
-  UseGuards,
-  Delete,
-  ForbiddenException,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { CvsService } from './cvs.service';
@@ -27,8 +27,12 @@ import { Roles } from '../decorators/role.decorator';
 import { UserRoleEnum } from '../users/enums/user-role.enum';
 import { UpdateByCriteriaCvDto } from './dto/update-by-criteria-cv.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { editFileName, imageFileFilter } from '../common/files/file-upload.utils';
+import {
+  editFileName,
+  imageFileFilter,
+} from '../common/files/file-upload.utils';
 import { diskStorage } from 'multer';
+
 @Controller('cvs')
 export class CvsController extends GenericController<CvEntity> {
   constructor(private readonly cvsService: CvsService) {
@@ -38,7 +42,9 @@ export class CvsController extends GenericController<CvEntity> {
   @UseGuards(JwtAuthGuard)
   @Get()
   findAll(@CurrentUser() user: UserEntity) {
-    if (user.role === UserRoleEnum.ADMIN) {
+    const isAdmin: boolean = user.roles?.includes(UserRoleEnum.ADMIN);
+
+    if (isAdmin) {
       return this.cvsService.findAll();
     }
     return this.cvsService.findMyCvs(user);
@@ -59,7 +65,9 @@ export class CvsController extends GenericController<CvEntity> {
   ) {
     const cv = await this.cvsService.findOneWithUser(id);
 
-    if (user.role === UserRoleEnum.ADMIN || cv.user.id === user.id) {
+    const isAdmin: boolean = user.roles?.includes(UserRoleEnum.ADMIN);
+
+    if (isAdmin || cv.user.id === user.id) {
       return cv;
     }
     throw new ForbiddenException('You can only access your own cvs');
@@ -107,7 +115,9 @@ export class CvsController extends GenericController<CvEntity> {
   ): Promise<CvEntity> {
     const cv = await this.cvsService.findOneWithUser(id);
 
-    if (user.role === UserRoleEnum.ADMIN || cv.user.id === user.id) {
+    const isAdmin: boolean = user.roles?.includes(UserRoleEnum.ADMIN);
+
+    if (isAdmin || cv.user.id === user.id) {
       if (file) {
         dto.path = file.filename;
       }
@@ -125,7 +135,10 @@ export class CvsController extends GenericController<CvEntity> {
     @CurrentUser() user: UserEntity,
   ) {
     const cv = await this.cvsService.findOneWithUser(id);
-    if (user.role === UserRoleEnum.ADMIN || cv.user.id === user.id) {
+
+    const isAdmin: boolean = user.roles?.includes(UserRoleEnum.ADMIN);
+
+    if (isAdmin || cv.user.id === user.id) {
       return this.cvsService.softDelete(id);
     }
     throw new ForbiddenException('You can only delete your own cvs');

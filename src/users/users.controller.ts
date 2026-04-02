@@ -41,7 +41,9 @@ export class UsersController extends GenericController<UserEntity> {
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: UserEntity,
   ) {
-    if (user.role === UserRoleEnum.ADMIN || user.id === id) {
+    const isAdmin: boolean = user.roles?.includes(UserRoleEnum.ADMIN);
+
+    if (isAdmin || user.id === id) {
       return this.usersService.findOne(id);
     }
     throw new ForbiddenException('You can only access to your account');
@@ -54,7 +56,9 @@ export class UsersController extends GenericController<UserEntity> {
     @Body() dto: UpdateUserDto,
     @CurrentUser() user: UserEntity,
   ) {
-    if (user.role === UserRoleEnum.ADMIN || user.id === id) {
+    const isAdmin: boolean = user.roles?.includes(UserRoleEnum.ADMIN);
+
+    if (isAdmin || user.id === id) {
       return this.usersService.updateUser(id, dto);
     }
     throw new ForbiddenException('You can only update your own account');
@@ -76,7 +80,9 @@ export class UsersController extends GenericController<UserEntity> {
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: UserEntity,
   ) {
-    if (user.role === UserRoleEnum.ADMIN || user.id === id) {
+    const isAdmin: boolean = user.roles?.includes(UserRoleEnum.ADMIN);
+
+    if (isAdmin || user.id === id) {
       return this.usersService.softDelete(id);
     }
     throw new ForbiddenException('You can only delete your own account');

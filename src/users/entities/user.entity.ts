@@ -1,7 +1,14 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { TimeStampEntity } from '../../common/db/timestamp.entity';
 import { CvEntity } from '../../cvs/entities/cv.entity';
-import { UserRoleEnum } from '../enums/user-role.enum';
+import { RoleEntity } from '../../roles/entities/role.entity';
 
 @Entity('user')
 export class UserEntity extends TimeStampEntity {
@@ -27,10 +34,9 @@ export class UserEntity extends TimeStampEntity {
   })
   cvs: CvEntity[];
 
-  @Column({
-    type: 'enum',
-    enum: UserRoleEnum,
-    default: UserRoleEnum.USER,
+  @ManyToMany(() => RoleEntity, (role) => role.users, {
+    cascade: true,
   })
-  role: UserRoleEnum;
+  @JoinTable()
+  roles: RoleEntity[];
 }

@@ -22,7 +22,6 @@ export class UserEntity extends TimeStampEntity {
   email: string;
   @Column()
   password: string;
-  //pour chaque cv va chercher l'user associee
   @OneToMany(() => CvEntity, (cv) => cv.user, {
     cascade: true,
     eager: false

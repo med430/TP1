@@ -33,7 +33,6 @@ export class CvEntity extends TimeStampEntity {
   job: string;
   @Column({ nullable: true })
   path: string;
-  //pour chaque user va chercher les cvs correspondants
   @ManyToOne(() => UserEntity, (user) => user.cvs, {
     nullable: false,
     onDelete: 'CASCADE',

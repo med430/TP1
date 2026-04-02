@@ -11,6 +11,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { GenericCrud } from '../common/db/generic-crud.service';
 import { CvEntity } from './entities/cv.entity';
 import { UpdateCvDto } from './dto/update-cv.dto';
+import { UserEntity } from '../users/entities/user.entity';
+import { UserRoleEnum } from '../users/enums/user-role.enum';
 
 @Injectable()
 export class CvsService extends GenericCrud<CvEntity> {
@@ -31,13 +33,28 @@ export class CvsService extends GenericCrud<CvEntity> {
     }
   }
 
-   async createCv(
+  async findOneWithUser(id: number): Promise<CvEntity> {
+    const cv = await this.cvRepository.findOne({
+      where: { id },
+      relations: ['user', 'skills'],
+    });
+
+    if (!cv) {
+      throw new NotFoundException('CV not found');
+    }
+
+    return cv;
+  }
+
+  async createCv(
     dto: Partial<CvEntity>,
+    user: UserEntity,
   ): Promise<CvEntity> {
     await this.validateUniqueCin(dto.cin!);
 
     return super.create({
       ...dto,
+      user,
     });
   }
 
@@ -76,14 +93,29 @@ export class CvsService extends GenericCrud<CvEntity> {
   async updateByCriteriaCv(
     criteria: FindOptionsWhere<CvEntity>,
     dto: UpdateCvDto,
+    user: UserEntity,
   ): Promise<CvEntity[]> {
 
+    let where: FindOptionsWhere<CvEntity>;
+
+    if (user.role === UserRoleEnum.ADMIN) {
+      where = criteria;
+    } else {
+      where = {
+        ...criteria,
+        user: {
+          id: user.id,
+        },
+      };
+    }
+
     const cvs = await this.cvRepository.find({
-      where: criteria,
+      where,
+      relations: ['user'],
     });
 
     if (!cvs.length) {
-      throw new NotFoundException('No CV found');
+      throw new NotFoundException('No CV found or not allowed');
     }
 
     const updated: CvEntity[] = [];

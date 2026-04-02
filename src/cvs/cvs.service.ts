@@ -3,15 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  FindOptionsWhere,
-  Repository,
-} from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { GenericCrud } from '../common/db/generic-crud.service';
 import { CvEntity } from './entities/cv.entity';
-import { UpdateCvDto } from './dto/update-cv.dto';
 import { UserEntity } from '../users/entities/user.entity';
+import { UpdateCvDto } from './dto/update-cv.dto';
 import { UserRoleEnum } from '../users/enums/user-role.enum';
 
 @Injectable()
@@ -23,7 +20,7 @@ export class CvsService extends GenericCrud<CvEntity> {
     super(cvRepository);
   }
 
-    private async validateUniqueCin(cin: number, excludeId?: number) {
+  private async validateUniqueCin(cin: number, excludeId?: number) {
     const exists = await this.cvRepository.findOne({
       where: { cin },
     });
@@ -31,6 +28,12 @@ export class CvsService extends GenericCrud<CvEntity> {
     if (exists && exists.id !== excludeId) {
       throw new BadRequestException('CIN already exists');
     }
+  }
+  async findMyCvs(user: UserEntity): Promise<CvEntity[]> {
+    return this.cvRepository.find({
+      where: { user: { id: user.id } },
+      relations: ['skills'],
+    });
   }
 
   async findOneWithUser(id: number): Promise<CvEntity> {
@@ -46,10 +49,7 @@ export class CvsService extends GenericCrud<CvEntity> {
     return cv;
   }
 
-  async createCv(
-    dto: Partial<CvEntity>,
-    user: UserEntity,
-  ): Promise<CvEntity> {
+  async createCv(dto: Partial<CvEntity>, user: UserEntity): Promise<CvEntity> {
     await this.validateUniqueCin(dto.cin!);
 
     return super.create({
@@ -58,10 +58,7 @@ export class CvsService extends GenericCrud<CvEntity> {
     });
   }
 
-  async updateCv(
-    id: number,
-    dto: UpdateCvDto,
-  ): Promise<CvEntity> {
+  async updateCv(id: number, dto: UpdateCvDto): Promise<CvEntity> {
     if (dto.cin) {
       await this.validateUniqueCin(dto.cin, id);
     }
@@ -69,13 +66,10 @@ export class CvsService extends GenericCrud<CvEntity> {
     return super.update(id, dto);
   }
 
-
   async statCvNumberByAge(min?: number, max?: number) {
     const qb = this.cvRepository.createQueryBuilder('cv');
 
-    qb
-      .select('cv.age', 'age')
-      .addSelect('COUNT(cv.id)', 'count');
+    qb.select('cv.age', 'age').addSelect('COUNT(cv.id)', 'count');
 
     if (min !== undefined) {
       qb.andWhere('cv.age >= :min', { min });
@@ -95,7 +89,6 @@ export class CvsService extends GenericCrud<CvEntity> {
     dto: UpdateCvDto,
     user: UserEntity,
   ): Promise<CvEntity[]> {
-
     let where: FindOptionsWhere<CvEntity>;
 
     if (user.role === UserRoleEnum.ADMIN) {
@@ -131,5 +124,4 @@ export class CvsService extends GenericCrud<CvEntity> {
 
     return updated;
   }
-  
 }

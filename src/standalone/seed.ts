@@ -4,7 +4,6 @@ import { AppModule } from '../app.module';
 import { UsersService } from '../users/users.service';
 import { CvsService } from '../cvs/cvs.service';
 import { SkillsService } from '../skills/skills.service';
-import { RolesService } from '../roles/roles.service';
 
 import {
   randEmail,
@@ -20,6 +19,7 @@ import {
 import { SkillEntity } from '../skills/entities/skill.entity';
 import { UserEntity } from '../users/entities/user.entity';
 import { RoleEntity } from '../roles/entities/role.entity';
+import { RolesService } from '../roles/roles.service';
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
@@ -50,6 +50,7 @@ async function bootstrap() {
     });
     skills.push(skill);
   }
+
 
   const users: UserEntity[] = [];
 
@@ -94,7 +95,9 @@ async function bootstrap() {
   for (let i = 0; i < 10; i++) {
     const user = users[Math.floor(Math.random() * users.length)];
 
-    const randomSkills = skills.sort(() => 0.5 - Math.random()).slice(0, 2);
+    const randomSkills = skills
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 2);
 
     const cv = cvService['repository'].create({
       firstname: randFirstName(),

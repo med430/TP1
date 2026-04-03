@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -82,5 +83,29 @@ export class AuthService {
     }
 
     return user.roles?.some((r) => r.name === 'ADMIN');
+  }
+
+  async canAccessResource(
+    user: UserEntity,
+    resourceOwnerId: number,
+  ): Promise<void> {
+      const fullUser = await this.userRepository.findOne({
+        where: { id: user.id },
+        relations: ['roles'],
+      });
+
+      if (!fullUser) {
+      throw new ForbiddenException('User not found');
+    }
+
+    const isAdmin = fullUser.roles?.some((r) => r.name === 'ADMIN');
+
+    if (isAdmin) {
+      return; // ✅ Admin can access everything
+    }
+
+    if (fullUser.id !== resourceOwnerId) {
+      throw new ForbiddenException('Access denied');
+    }
   }
 }

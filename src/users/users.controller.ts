@@ -7,6 +7,7 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  Post,
   UseGuards,
   Version,
 } from '@nestjs/common';
@@ -19,6 +20,9 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { RolesGuard } from '../guards/roles.guard';
 import { UpdateByCriteriaUserDto } from './dto/update-by-criteria-user.dto';
+import { Roles } from '../decorators/role.decorator';
+import { RoleEntity } from '../roles/entities/role.entity';
+import { AddRoleDto } from './dto/add-role.dto';
 
 @Controller('users')
 export class UsersController extends GenericController<UserEntity> {
@@ -26,7 +30,6 @@ export class UsersController extends GenericController<UserEntity> {
     super(usersService);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
   findAll() {
     return this.usersService.findAll();
@@ -98,5 +101,22 @@ export class UsersController extends GenericController<UserEntity> {
   @Delete(':id/hard')
   hardDelete(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.delete(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('user/:id')
+  async userRoles(@Param('id', ParseIntPipe) id: number) {
+    const user = await this.usersService.findUserRoles(+id);
+    return user;
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @Post(':id')
+  async addRole(
+    @Param('id', ParseIntPipe) userId: number,
+    @Body() addRoleDto: AddRoleDto,
+  ) {
+    return this.usersService.addRole(userId, addRoleDto.roleId);
   }
 }

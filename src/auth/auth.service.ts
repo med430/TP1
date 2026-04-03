@@ -1,5 +1,4 @@
 import {
-  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -13,22 +12,27 @@ import { JwtService } from '@nestjs/jwt';
 import { LoginResponeDto } from './dto/login-response.dto';
 import { JwtPayloadDto } from './dto/jwt-payload.dto';
 import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UsersService,
     private jwtService: JwtService,
-    @Inject()
+    @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
   ) {}
 
   async register(dto: CreateUserDto): Promise<Partial<UserEntity>> {
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
+    const userRole = await this.userRepository.manager.findOne('RoleEntity', {
+      where: { name: 'USER' },
+    });
+
     const user = await this.userService.create({
       ...dto,
       password: hashedPassword,
-      roles: ['USER'],
+      roles: [userRole],
     });
 
     return {
@@ -40,7 +44,11 @@ export class AuthService {
   async login(credentialsDto: CredenialsDto): Promise<LoginResponeDto> {
     const { identifier, password } = credentialsDto;
 
-    const user = await this.userService.getUserByIdentifier(identifier, true);
+    const user = await this.userService.getUserByIdentifier(
+      identifier,
+      true,
+      true,
+    );
     if (!user) {
       throw new UnauthorizedException('Veuillez vérifier vos credentials');
     }
@@ -54,7 +62,7 @@ export class AuthService {
     const payload: JwtPayloadDto = {
       username: user.username,
       email: user.email,
-      roles: user.roles,
+      roles: user.roles.map((r) => r.name),
     };
     const jwt = this.jwtService.sign(payload);
 
@@ -66,13 +74,13 @@ export class AuthService {
   async isAdmin(userId: number): Promise<boolean> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['roles']
+      relations: ['roles'],
     });
 
     if (!user) {
       throw new NotFoundException('User does not exist');
     }
 
-    return user.roles?.some((r) => r.name === "ADMIN");
+    return user.roles?.some((r) => r.name === 'ADMIN');
   }
 }

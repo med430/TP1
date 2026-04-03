@@ -1,15 +1,16 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { GenericCrud } from '../common/db/generic-crud.service';
 import { RoleEntity } from './entities/role.entity';
 import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class RolesService extends GenericCrud<RoleEntity> {
   constructor(
-    @Inject()
-    private readonly roleRepository: Repository<RoleEntity>
+    @InjectRepository(RoleEntity)
+    private readonly roleRepository: Repository<RoleEntity>,
   ) {
     super(roleRepository);
   }

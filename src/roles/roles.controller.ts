@@ -31,7 +31,7 @@ export class RolesController {
   }
 
   @Get()
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'MANAGER')
   findAll(): Promise<RoleEntity[]> {
     return this.rolesService.findAll();
   }

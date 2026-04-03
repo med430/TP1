@@ -4,6 +4,7 @@ import { AppModule } from '../app.module';
 import { UsersService } from '../users/users.service';
 import { CvsService } from '../cvs/cvs.service';
 import { SkillsService } from '../skills/skills.service';
+import { RolesService } from '../roles/roles.service';
 
 import {
   randEmail,
@@ -18,6 +19,7 @@ import {
 
 import { SkillEntity } from '../skills/entities/skill.entity';
 import { UserEntity } from '../users/entities/user.entity';
+import { RoleEntity } from '../roles/entities/role.entity';
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
@@ -25,7 +27,20 @@ async function bootstrap() {
   const userService = app.get(UsersService);
   const cvService = app.get(CvsService);
   const skillService = app.get(SkillsService);
+  const roleService = app.get(RolesService);
 
+  const roles: RoleEntity[] = [];
+
+  const roleNames = ['ADMIN', 'MANAGER', 'USER'];
+
+  for (const name of roleNames) {
+    const role = await roleService.create({ name });
+    roles.push(role);
+  }
+
+  const adminRole = roles.find((r) => r.name === 'ADMIN')!;
+  const managerRole = roles.find((r) => r.name === 'MANAGER')!;
+  const userRole = roles.find((r) => r.name === 'USER')!;
 
   const skills: SkillEntity[] = [];
 
@@ -36,14 +51,33 @@ async function bootstrap() {
     skills.push(skill);
   }
 
-
   const users: UserEntity[] = [];
 
+  // 🔥 ADMIN
+  const admin = await userService.create({
+    username: 'admin',
+    email: 'admin@test.com',
+    password: 'admin123',
+    roles: [adminRole],
+  });
+  users.push(await userService.findOne(admin.id));
+
+  // 🔥 MANAGER
+  const manager = await userService.create({
+    username: 'manager',
+    email: 'manager@test.com',
+    password: 'manager123',
+    roles: [managerRole],
+  });
+  users.push(await userService.findOne(manager.id));
+
+  // 🔥 NORMAL USERS
   for (let i = 0; i < 3; i++) {
     const user = await userService.create({
       username: randUserName(),
       email: randEmail(),
       password: randPassword(),
+      roles: [userRole],
     });
 
     const savedUser = await userService.findOne(user.id);
@@ -57,13 +91,10 @@ async function bootstrap() {
 
   console.log('Users created:', users.length);
 
-
   for (let i = 0; i < 10; i++) {
     const user = users[Math.floor(Math.random() * users.length)];
 
-    const randomSkills = skills
-      .sort(() => 0.5 - Math.random())
-      .slice(0, 2);
+    const randomSkills = skills.sort(() => 0.5 - Math.random()).slice(0, 2);
 
     const cv = cvService['repository'].create({
       firstname: randFirstName(),

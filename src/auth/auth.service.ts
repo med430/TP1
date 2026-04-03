@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
@@ -62,17 +63,17 @@ export class AuthService {
       jwt,
     };
   }
-
-  async isAdmin(userId: number): Promise<boolean> {
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['roles']
-    });
-
+  canAccessResource(user: UserEntity, ownerId: number): void {
     if (!user) {
-      throw new NotFoundException('User does not exist');
+      throw new UnauthorizedException('User not authenticated');
     }
 
-    return user.roles?.some((r) => r.name === "ADMIN");
+    const isAdmin = user.roles?.some((r) => r.name === 'ADMIN');
+
+    if (isAdmin || user.id === ownerId) {
+      return;
+    }
+
+    throw new ForbiddenException('Access denied');
   }
 }

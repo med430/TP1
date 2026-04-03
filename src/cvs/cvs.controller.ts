@@ -2,8 +2,8 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Patch,
@@ -45,7 +45,7 @@ export class CvsController extends GenericController<CvEntity> {
   @UseGuards(JwtAuthGuard)
   @Get()
   async findAll(@CurrentUser() user: UserEntity) {
-    const isAdmin = await this.authService.isAdmin(user.id);
+    const isAdmin = user.roles?.some((r) => r.name === 'ADMIN');
 
     if (isAdmin) {
       return this.cvsService.findAll();
@@ -69,13 +69,13 @@ export class CvsController extends GenericController<CvEntity> {
   ) {
     const cv = await this.cvsService.findOneWithUser(id);
 
-    const isAdmin = user.roles?.some((r) => r.name === 'ADMIN');
-
-    if (isAdmin || cv.user.id === user.id) {
-      return cv;
+    if (!cv) {
+      throw new NotFoundException('CV not found');
     }
 
-    throw new ForbiddenException('You can only access your own cvs');
+    this.authService.canAccessResource(user, cv.user.id);
+
+    return cv;
   }
 
   @UseGuards(JwtAuthGuard)
@@ -120,17 +120,17 @@ export class CvsController extends GenericController<CvEntity> {
   ): Promise<CvEntity> {
     const cv = await this.cvsService.findOneWithUser(id);
 
-    const isAdmin = user.roles?.some((r) => r.name === 'ADMIN');
-
-    if (isAdmin || cv.user.id === user.id) {
-      if (file) {
-        dto.path = file.filename;
-      }
-
-      return this.cvsService.updateCv(id, dto);
+    if (!cv) {
+      throw new NotFoundException('CV not found');
     }
 
-    throw new ForbiddenException('You can only modify your own cvs');
+    this.authService.canAccessResource(user, cv.user.id);
+
+    if (file) {
+      dto.path = file.filename;
+    }
+
+    return this.cvsService.updateCv(id, dto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -141,13 +141,13 @@ export class CvsController extends GenericController<CvEntity> {
   ) {
     const cv = await this.cvsService.findOneWithUser(id);
 
-    const isAdmin = user.roles?.some((r) => r.name === 'ADMIN');
-
-    if (isAdmin || cv.user.id === user.id) {
-      return this.cvsService.softDelete(id);
+    if (!cv) {
+      throw new NotFoundException('CV not found');
     }
 
-    throw new ForbiddenException('You can only delete your own cvs');
+    this.authService.canAccessResource(user, cv.user.id);
+
+    return this.cvsService.softDelete(id);
   }
 
   @UseGuards(JwtAuthGuard)

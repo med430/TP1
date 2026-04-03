@@ -19,10 +19,13 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { RolesGuard } from '../guards/roles.guard';
 import { UpdateByCriteriaUserDto } from './dto/update-by-criteria-user.dto';
+import { AuthService } from '../auth/auth.service';
 
 @Controller('users')
 export class UsersController extends GenericController<UserEntity> {
-  constructor(private readonly usersService: UsersService) {
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly authService: AuthService) {
     super(usersService);
   }
 
@@ -38,30 +41,22 @@ export class UsersController extends GenericController<UserEntity> {
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: UserEntity,
   ) {
-    const isAdmin = user.roles?.some((r) => r.name === 'ADMIN');
+    this.authService.canAccessResource(user, id);
 
-    if (isAdmin || user.id === id) {
-      return this.usersService.findOne(id);
-    }
-
-    throw new ForbiddenException('You can only access your account');
+    return this.usersService.findOne(id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Version('1')
   @Patch(':id')
-  update(
+  async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateUserDto,
     @CurrentUser() user: UserEntity,
   ) {
-    const isAdmin = user.roles?.some((r) => r.name === 'ADMIN');
+    this.authService.canAccessResource(user, id);
 
-    if (isAdmin || user.id === id) {
-      return this.usersService.updateUser(id, dto);
-    }
-
-    throw new ForbiddenException('You can only update your own account');
+    return this.usersService.updateUser(id, dto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -75,17 +70,13 @@ export class UsersController extends GenericController<UserEntity> {
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  delete(
+  async delete(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: UserEntity,
   ) {
-    const isAdmin = user.roles?.some((r) => r.name === 'ADMIN');
+    this.authService.canAccessResource(user, id);
 
-    if (isAdmin || user.id === id) {
-      return this.usersService.softDelete(id);
-    }
-
-    throw new ForbiddenException('You can only delete your own account');
+    return this.usersService.softDelete(id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

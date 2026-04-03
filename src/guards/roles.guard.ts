@@ -8,7 +8,6 @@ import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/role.decorator';
 import { Request } from 'express';
 import { UserEntity } from '../users/entities/user.entity';
-import { UserRoleEnum } from '../users/enums/user-role.enum';
 
 interface RequestWithUser extends Request {
   user: UserEntity;
@@ -19,7 +18,7 @@ export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<UserRoleEnum[]>(
+    const requiredRoles = this.reflector.getAllAndOverride<string[]>(
       ROLES_KEY,
       [context.getHandler(), context.getClass()],
     );
@@ -29,10 +28,11 @@ export class RolesGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<RequestWithUser>();
-
     const user = request.user;
 
-    if (!user || !requiredRoles.some((role) => user.roles?.includes(role))) {
+    const userRoles = user.roles?.map((r) => r.name) || [];
+
+    if (!requiredRoles.some((role) => userRoles.includes(role))) {
       throw new ForbiddenException('Access denied');
     }
 

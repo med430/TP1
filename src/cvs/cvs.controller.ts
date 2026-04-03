@@ -24,7 +24,6 @@ import { UserEntity } from '../users/entities/user.entity';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/role.decorator';
-import { UserRoleEnum } from '../users/enums/user-role.enum';
 import { UpdateByCriteriaCvDto } from './dto/update-by-criteria-cv.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -32,26 +31,31 @@ import {
   imageFileFilter,
 } from '../common/files/file-upload.utils';
 import { diskStorage } from 'multer';
+import { AuthService } from '../auth/auth.service';
 
 @Controller('cvs')
 export class CvsController extends GenericController<CvEntity> {
-  constructor(private readonly cvsService: CvsService) {
+  constructor(
+    private readonly cvsService: CvsService,
+    private readonly authService: AuthService,
+  ) {
     super(cvsService);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(@CurrentUser() user: UserEntity) {
-    const isAdmin: boolean = user.roles?.includes(UserRoleEnum.ADMIN);
+  async findAll(@CurrentUser() user: UserEntity) {
+    const isAdmin = await this.authService.isAdmin(user.id);
 
     if (isAdmin) {
       return this.cvsService.findAll();
     }
+
     return this.cvsService.findMyCvs(user);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoleEnum.ADMIN)
+  @Roles('ADMIN')
   @Get('stats')
   statsCvNumberByAge(@Query() query: StatParamDto) {
     return this.cvsService.statCvNumberByAge(query.min, query.max);
@@ -65,11 +69,12 @@ export class CvsController extends GenericController<CvEntity> {
   ) {
     const cv = await this.cvsService.findOneWithUser(id);
 
-    const isAdmin: boolean = user.roles?.includes(UserRoleEnum.ADMIN);
+    const isAdmin = user.roles?.some((r) => r.name === 'ADMIN');
 
     if (isAdmin || cv.user.id === user.id) {
       return cv;
     }
+
     throw new ForbiddenException('You can only access your own cvs');
   }
 
@@ -115,7 +120,7 @@ export class CvsController extends GenericController<CvEntity> {
   ): Promise<CvEntity> {
     const cv = await this.cvsService.findOneWithUser(id);
 
-    const isAdmin: boolean = user.roles?.includes(UserRoleEnum.ADMIN);
+    const isAdmin = user.roles?.some((r) => r.name === 'ADMIN');
 
     if (isAdmin || cv.user.id === user.id) {
       if (file) {
@@ -136,11 +141,12 @@ export class CvsController extends GenericController<CvEntity> {
   ) {
     const cv = await this.cvsService.findOneWithUser(id);
 
-    const isAdmin: boolean = user.roles?.includes(UserRoleEnum.ADMIN);
+    const isAdmin = user.roles?.some((r) => r.name === 'ADMIN');
 
     if (isAdmin || cv.user.id === user.id) {
       return this.cvsService.softDelete(id);
     }
+
     throw new ForbiddenException('You can only delete your own cvs');
   }
 
@@ -152,15 +158,16 @@ export class CvsController extends GenericController<CvEntity> {
   ) {
     return this.cvsService.updateByCriteriaCv(body.criteria, body.dto, user);
   }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoleEnum.ADMIN)
+  @Roles('ADMIN')
   @Patch(':id/restore')
   restore(@Param('id', ParseIntPipe) id: number) {
     return this.cvsService.restore(id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoleEnum.ADMIN)
+  @Roles('ADMIN')
   @Delete(':id/hard')
   hardDelete(@Param('id', ParseIntPipe) id: number) {
     return this.cvsService.delete(id);

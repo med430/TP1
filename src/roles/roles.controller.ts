@@ -1,35 +1,59 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+
 import { RolesService } from './roles.service';
+import { RoleEntity } from './entities/role.entity';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
-import { GenericController } from '../common/db/generic-crud.controller';
+
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { RolesGuard } from '../guards/roles.guard';
+import { Roles } from '../decorators/role.decorator';
 
 @Controller('roles')
-export class RolesController extends GenericController<any> {
+@UseGuards(JwtAuthGuard, RolesGuard) // applies to all routes
+export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Post()
+  @Roles('ADMIN')
   create(@Body() createRoleDto: CreateRoleDto) {
     return this.rolesService.create(createRoleDto);
   }
 
   @Get()
-  findAll() {
+  @Roles('ADMIN')
+  findAll(): Promise<RoleEntity[]> {
     return this.rolesService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.rolesService.findOne(+id);
+  @Roles('ADMIN')
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<RoleEntity> {
+    return this.rolesService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
-    return this.rolesService.update(+id, updateRoleDto);
+  @Roles('ADMIN')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateRoleDto: UpdateRoleDto,
+  ) {
+    return this.rolesService.update(id, updateRoleDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.rolesService.remove(+id);
+  @Roles('ADMIN')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.rolesService.remove(id);
   }
 }

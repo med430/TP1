@@ -90,7 +90,7 @@ export class CvsService extends GenericCrud<CvEntity> {
   ): Promise<CvEntity[]> {
     let where: FindOptionsWhere<CvEntity>;
 
-    const isAdmin: boolean = user.roles?.includes(UserRoleEnum.ADMIN);
+    const isAdmin: boolean = user.roles?.some((r) => r.name === 'ADMIN');
 
     if (isAdmin) {
       where = criteria;

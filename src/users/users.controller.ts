@@ -18,8 +18,6 @@ import { UpdateResult } from 'typeorm';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { RolesGuard } from '../guards/roles.guard';
-import { Roles } from '../decorators/role.decorator';
-import { UserRoleEnum } from './enums/user-role.enum';
 import { UpdateByCriteriaUserDto } from './dto/update-by-criteria-user.dto';
 
 @Controller('users')
@@ -29,7 +27,6 @@ export class UsersController extends GenericController<UserEntity> {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoleEnum.ADMIN)
   @Get()
   findAll() {
     return this.usersService.findAll();
@@ -41,13 +38,15 @@ export class UsersController extends GenericController<UserEntity> {
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: UserEntity,
   ) {
-    const isAdmin: boolean = user.roles?.includes(UserRoleEnum.ADMIN);
+    const isAdmin = user.roles?.some((r) => r.name === 'ADMIN');
 
     if (isAdmin || user.id === id) {
       return this.usersService.findOne(id);
     }
-    throw new ForbiddenException('You can only access to your account');
+
+    throw new ForbiddenException('You can only access your account');
   }
+
   @UseGuards(JwtAuthGuard)
   @Version('1')
   @Patch(':id')
@@ -56,16 +55,16 @@ export class UsersController extends GenericController<UserEntity> {
     @Body() dto: UpdateUserDto,
     @CurrentUser() user: UserEntity,
   ) {
-    const isAdmin: boolean = user.roles?.includes(UserRoleEnum.ADMIN);
+    const isAdmin = user.roles?.some((r) => r.name === 'ADMIN');
 
     if (isAdmin || user.id === id) {
       return this.usersService.updateUser(id, dto);
     }
+
     throw new ForbiddenException('You can only update your own account');
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoleEnum.ADMIN)
   @Version('2')
   @Patch()
   updateByCriteria(
@@ -80,23 +79,22 @@ export class UsersController extends GenericController<UserEntity> {
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: UserEntity,
   ) {
-    const isAdmin: boolean = user.roles?.includes(UserRoleEnum.ADMIN);
+    const isAdmin = user.roles?.some((r) => r.name === 'ADMIN');
 
     if (isAdmin || user.id === id) {
       return this.usersService.softDelete(id);
     }
+
     throw new ForbiddenException('You can only delete your own account');
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoleEnum.ADMIN)
   @Patch(':id/restore')
   restore(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.restore(id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoleEnum.ADMIN)
   @Delete(':id/hard')
   hardDelete(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.delete(id);

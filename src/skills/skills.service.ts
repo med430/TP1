@@ -9,7 +9,6 @@ import { GenericCrud } from '../common/db/generic-crud.service';
 import { SkillEntity } from './entities/skill.entity';
 import { CvEntity } from '../cvs/entities/cv.entity';
 import { UserEntity } from '../users/entities/user.entity';
-import { UserRoleEnum } from '../users/enums/user-role.enum';
 
 @Injectable()
 export class SkillsService extends GenericCrud<SkillEntity> {
@@ -33,7 +32,7 @@ export class SkillsService extends GenericCrud<SkillEntity> {
       throw new NotFoundException('CV not found');
     }
 
-    const isAdmin: boolean = user.roles?.includes(UserRoleEnum.ADMIN);
+    const isAdmin: boolean = user.roles?.some((r) => r.name === 'ADMIN');
 
     if (!isAdmin && cv.user.id !== user.id) {
       throw new ForbiddenException('Not allowed');

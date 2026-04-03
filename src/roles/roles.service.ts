@@ -1,26 +1,28 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { GenericCrud } from '../common/db/generic-crud.service';
+import { RoleEntity } from './entities/role.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
-export class RolesService {
+export class RolesService extends GenericCrud<RoleEntity> {
+  constructor(
+    @Inject()
+    private readonly roleRepository: Repository<RoleEntity>
+  ) {
+    super(roleRepository);
+  }
+
   create(createRoleDto: CreateRoleDto) {
-    return 'This action adds a new role';
+    return this.repository.save(createRoleDto);
   }
 
   findAll() {
-    return `This action returns all roles`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} role`;
-  }
-
-  update(id: number, updateRoleDto: UpdateRoleDto) {
-    return `This action updates a #${id} role`;
+    return this.repository.find();
   }
 
   remove(id: number) {
-    return `This action removes a #${id} role`;
+    return this.repository.delete(id);
   }
 }

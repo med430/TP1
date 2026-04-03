@@ -5,23 +5,21 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  Version,
-  UseGuards,
   Delete,
   Get,
+  UseGuards,
 } from '@nestjs/common';
 import { SkillsService } from './skills.service';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { SkillEntity } from './entities/skill.entity';
 import { GenericController } from '../common/db/generic-crud.controller';
 import { UpdateSkillDto } from './dto/update-skill.dto';
-import { UpdateResult, FindOptionsWhere } from 'typeorm';
+import { UpdateResult } from 'typeorm';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { UserEntity } from '../users/entities/user.entity';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/role.decorator';
-import { UserRoleEnum } from '../users/enums/user-role.enum';
 import { UpdateByCriteriaSkillDto } from './dto/update-by-criteria-skill.dto';
 
 @Controller('skills')
@@ -43,15 +41,14 @@ export class SkillsController extends GenericController<SkillEntity> {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoleEnum.ADMIN)
+  @Roles('ADMIN')
   @Post()
   create(@Body() dto: CreateSkillDto): Promise<SkillEntity> {
     return this.skillsService.create(dto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoleEnum.ADMIN)
-  @Version('1')
+  @Roles('ADMIN')
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -61,8 +58,7 @@ export class SkillsController extends GenericController<SkillEntity> {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoleEnum.ADMIN)
-  @Version('2')
+  @Roles('ADMIN')
   @Patch()
   updateByCriteria(
     @Body() body: UpdateByCriteriaSkillDto,
@@ -81,21 +77,21 @@ export class SkillsController extends GenericController<SkillEntity> {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoleEnum.ADMIN)
+  @Roles('ADMIN')
   @Delete(':id')
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.skillsService.softDelete(id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoleEnum.ADMIN)
+  @Roles('ADMIN')
   @Patch(':id/restore')
   restore(@Param('id', ParseIntPipe) id: number) {
     return this.skillsService.restore(id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoleEnum.ADMIN)
+  @Roles('ADMIN')
   @Delete(':id/hard')
   hardDelete(@Param('id', ParseIntPipe) id: number) {
     return this.skillsService.delete(id);
